@@ -9,7 +9,6 @@
 ## Live Demo
 
 - **Application URL:** https://new-moon-level4-llni.vercel.app/
-- **Demo Walkthrough Video:** *(Record and link demo video here)*
 
 ---
 
