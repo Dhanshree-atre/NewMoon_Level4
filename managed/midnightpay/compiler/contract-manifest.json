@@ -1,0 +1,118 @@
+{
+  "manifest-version": "1",
+  "compiler-version": "0.34.0",
+  "language-version": "0.26.0",
+  "runtime-version": "0.19.0",
+  "compiler": {
+    "type": "directory",
+    "contract-info.json": {
+      "type": "file",
+      "size": 4682,
+      "hash": "af7fecffa0f62700f577ec2f0448eade43a6ac31ac1a50d2d3cb2406f8782e45"
+    }
+  },
+  "contract": {
+    "type": "directory",
+    "index.d.ts": {
+      "type": "file",
+      "size": 4498,
+      "hash": "6655d17f55ef0f33c1f97d8b4951ee2b3c261d220c7c02afe8a59499df0c91c5"
+    },
+    "index.js": {
+      "type": "file",
+      "size": 82798,
+      "hash": "0e1b4d9bb6e620923a30749d6ade9ea75a4b6fb3537eb7f60cf1439ac4fb1cbf"
+    },
+    "index.js.map": {
+      "type": "file",
+      "size": 3267,
+      "hash": "02967e3e6a2a820420af2c07bb0845d4294b983700ad51d57f446a906c3a6cb2"
+    }
+  },
+  "zkir": {
+    "type": "directory",
+    "audit_compliance.bzkir": {
+      "type": "file",
+      "size": 155,
+      "hash": "9c042613f9f8d99b07be8e355083461fe4489197a11c92eb93dc9943261b6f80"
+    },
+    "audit_compliance.zkir": {
+      "type": "file",
+      "size": 2442,
+      "hash": "8a00f775a0b4973ed76408e38a80f6f77408ed5578d15e25a89b10c7fac2754c"
+    },
+    "claim_salary.bzkir": {
+      "type": "file",
+      "size": 592,
+      "hash": "608fc7642e51d1cfe2b8ce24d466f8570d257aaa664b9b82fa4d47d4373fadf7"
+    },
+    "claim_salary.zkir": {
+      "type": "file",
+      "size": 9479,
+      "hash": "873c86f09b3b43c165024cfb1dd39d9ceb91b33c7e8b755e0d207be495b4f49b"
+    },
+    "close_payroll_cycle.bzkir": {
+      "type": "file",
+      "size": 214,
+      "hash": "93410253fd6063304e5bc9cc79f3405922d2ad273a411909a4b818fea7aa0d66"
+    },
+    "close_payroll_cycle.zkir": {
+      "type": "file",
+      "size": 3196,
+      "hash": "d944594965d0b04d353a3a28de967b294f353f57c8dd0c701416ae5e0508250d"
+    },
+    "init_payroll_cycle.bzkir": {
+      "type": "file",
+      "size": 578,
+      "hash": "eb1f21b7fcb3d4db1d0781a375cc5c5d554918c0ff32daa9f75f5cd53f1a1767"
+    },
+    "init_payroll_cycle.zkir": {
+      "type": "file",
+      "size": 9598,
+      "hash": "82dcf6fe9429fbe5e3328fd98c8734686c81b7ec80dea8bff8365432ba98ee83"
+    }
+  },
+  "keys": {
+    "type": "directory",
+    "audit_compliance.prover": {
+      "type": "file",
+      "size": 279303,
+      "hash": "e1fe9adf81e94533e7c96f1f3ebd6cbf7e981699c4a79c66aed454ef8c3e784a"
+    },
+    "audit_compliance.verifier": {
+      "type": "file",
+      "size": 1351,
+      "hash": "7bb0613b61c19a88ed1e6051ae610ac52b78ed34d1adbeb66ef501b433104e3e"
+    },
+    "claim_salary.prover": {
+      "type": "file",
+      "size": 5217708,
+      "hash": "4c5b51d8662d8ea282a25a6d5b2fad48b32f6ec9aa1324c96b07f4c464e49296"
+    },
+    "claim_salary.verifier": {
+      "type": "file",
+      "size": 2119,
+      "hash": "30d015d3f78650744dc266187a4f29bf7d04e7121c036d0e38ae3c9b83615295"
+    },
+    "close_payroll_cycle.prover": {
+      "type": "file",
+      "size": 2820173,
+      "hash": "5c988f34bceb14674f45d833405e5ec9d8fc4f440d77fb757f52a4955fabb221"
+    },
+    "close_payroll_cycle.verifier": {
+      "type": "file",
+      "size": 2119,
+      "hash": "2d24f939c2427cb225c0903147e0da9659f959cbfb150bab60ad9d8bb36f962b"
+    },
+    "init_payroll_cycle.prover": {
+      "type": "file",
+      "size": 2821054,
+      "hash": "58fd7b047dcbbbf1e06a5d5fd0619026a85a7264606308cb447715ed9d89942c"
+    },
+    "init_payroll_cycle.verifier": {
+      "type": "file",
+      "size": 2119,
+      "hash": "b41019de9d17541f98861c4e2772bcb74cadb641a178009260606838d69d2707"
+    }
+  }
+}

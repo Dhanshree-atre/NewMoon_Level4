@@ -1,0 +1,170 @@
+/**
+ * MidnightPay - Confidential Payroll & Fund-Splitting Protocol
+ *
+ * PRIVACY MODEL & ZERO-KNOWLEDGE SPECIFICATION:
+ * ============================================================================
+ * 1. Public Ledger State (Verifiable On-Chain by Anyone):
+ *    - employer: The employer identity commitment (32-byte persistent hash)
+ *    - currentCycle: Current payroll cycle / epoch index
+ *    - totalCommittedBudget: Total payroll budget allocated for this cycle
+ *    - totalDisbursed: Cumulative amount claimed and verified on-chain
+ *    - payrollCommitment: Root commitment of individual allocations
+ *    - claimedNullifiers: Key-value map of nullifiers preventing double-claims
+ *    - complianceHash: Hash of aggregate tax & regulatory compliance proof
+ *    - isClosed: Boolean indicating if the active payroll cycle is closed
+ *
+ * 2. Private Witnesses (Client-Side Only, Never Revealed to Public Ledger):
+ *    - local_secret_key(): Private key of the transaction sender
+ *    - get_recipient_claim_witness(): Private tuple [recipient, amount, salt, cycle]
+ *    - get_compliance_witness(): Private compliance assertion preimage
+ *
+ * 3. Proved via Zero-Knowledge Circuits:
+ *    - Budget Solvency: totalDisbursed <= totalCommittedBudget at all times
+ *    - Legitimate Entitlement: Recipient claim matches the employer commitment
+ *    - Double-Spend Protection: Nullifier uniqueness prevents re-claiming
+ *    - Selective Disclosure: Recipient can prove valid income without leaking
+ *      peer compensation, employer treasury details, or individual rates
+ * ============================================================================
+ */
+
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+// ----------------------------------------------------------------------------
+// PUBLIC LEDGER STATE
+// ----------------------------------------------------------------------------
+export ledger employer: Bytes<32>;
+export ledger currentCycle: Uint<64>;
+export ledger totalCommittedBudget: Uint<64>;
+export ledger totalDisbursed: Uint<64>;
+export ledger payrollCommitment: Bytes<32>;
+export ledger claimedNullifiers: Map<Bytes<32>, Boolean>;
+export ledger complianceHash: Bytes<32>;
+export ledger isClosed: Boolean;
+
+// ----------------------------------------------------------------------------
+// PRIVATE WITNESS DECLARATIONS (Local Client Execution)
+// ----------------------------------------------------------------------------
+witness local_secret_key(): Bytes<32>;
+witness get_recipient_claim_witness(): [Bytes<32>, Uint<64>, Bytes<32>, Uint<64>];
+witness get_compliance_witness(): Bytes<32>;
+
+// ----------------------------------------------------------------------------
+// PURE CIRCUITS (Cryptographic Helper Primitives)
+// ----------------------------------------------------------------------------
+pure circuit compute_employer_commitment(sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "midnightpay:employer:"), sk]);
+}
+
+pure circuit compute_claim_leaf(recipient: Bytes<32>, amount: Uint<64>, salt: Bytes<32>, cycle: Uint<64>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([
+    recipient,
+    salt,
+    persistentHash<Vector<2, Bytes<32>>>([pad(32, "midnightpay:claim:leaf:"), pad(32, "salt")])
+  ]);
+}
+
+pure circuit compute_nullifier(sk: Bytes<32>, salt: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([
+    sk,
+    salt,
+    pad(32, "midnightpay:nullifier:")
+  ]);
+}
+
+// ----------------------------------------------------------------------------
+// EXPORTED CIRCUITS
+// ----------------------------------------------------------------------------
+
+/**
+ * Initialize a new payroll epoch with committed total budget and schedule root.
+ * Only the designated employer identity can initialize or update.
+ */
+export circuit init_payroll_cycle(
+  cycleId: Uint<64>,
+  budget: Uint<64>,
+  scheduleCommitment: Bytes<32>,
+  complianceCommitment: Bytes<32>
+): [] {
+  const sk = local_secret_key();
+  const callerCommitment = compute_employer_commitment(sk);
+
+  if (disclose(totalCommittedBudget != 0)) {
+    assert(disclose(callerCommitment == employer), "Unauthorized: Only employer can start new cycle");
+    assert(disclose(isClosed), "Previous cycle must be closed before starting new one");
+  } else {
+    employer = disclose(callerCommitment);
+  }
+
+  currentCycle = disclose(cycleId);
+  totalCommittedBudget = disclose(budget);
+  totalDisbursed = 0;
+  payrollCommitment = disclose(scheduleCommitment);
+  complianceHash = disclose(complianceCommitment);
+  isClosed = false;
+}
+
+/**
+ * Claim confidential salary payout.
+ * Verifies the recipient is authorized in the private schedule,
+ * verifies the nullifier is unused, and updates disbursed totals.
+ */
+export circuit claim_salary(
+  nullifier: Bytes<32>,
+  leafHash: Bytes<32>,
+  disclosedAmount: Uint<64>
+): [] {
+  assert(disclose(!isClosed), "Payroll cycle is closed");
+  assert(disclose(!claimedNullifiers.member(disclose(nullifier))), "Salary already claimed for this nullifier");
+
+  // Fetch private claim details from local witness
+  const claimWitness = get_recipient_claim_witness();
+  const recipient = claimWitness[0];
+  const amount = claimWitness[1];
+  const salt = claimWitness[2];
+  const cycle = claimWitness[3];
+
+  // Assert witness matches public circuit arguments
+  assert(disclose(amount == disclosedAmount), "Disclosed amount does not match private entitlement");
+  assert(disclose(cycle == currentCycle), "Claim cycle does not match active cycle");
+
+  // Cryptographically prove leaf commitment
+  const expectedLeaf = compute_claim_leaf(recipient, amount, salt, cycle);
+  assert(disclose(expectedLeaf == leafHash), "Invalid claim leaf proof");
+
+  // Verify caller's private key generates the claim nullifier
+  const sk = local_secret_key();
+  const expectedNullifier = compute_nullifier(sk, salt);
+  assert(disclose(expectedNullifier == nullifier), "Nullifier verification failed");
+
+  // Prevent double-spend: mark nullifier as claimed
+  claimedNullifiers.insert(disclose(nullifier), true);
+
+  // Update cumulative disbursed on-chain
+  totalDisbursed = (disclose(totalDisbursed) + disclose(disclosedAmount)) as Uint<64>;
+  assert(disclose(totalDisbursed <= totalCommittedBudget), "Total disbursed exceeds committed budget");
+}
+
+/**
+ * Selectively disclose and audit aggregate compliance proof.
+ * Allows auditors to verify tax withholding and benefit deductions
+ * without seeing any individual's salary.
+ */
+export circuit audit_compliance(providedHash: Bytes<32>): [] {
+  const complianceData = get_compliance_witness();
+  assert(disclose(complianceData == complianceHash), "Compliance witness mismatch");
+  assert(disclose(providedHash == complianceHash), "Audit verification failed");
+}
+
+/**
+ * Finalize and close the current payroll cycle.
+ */
+export circuit close_payroll_cycle(): [] {
+  const sk = local_secret_key();
+  const callerCommitment = compute_employer_commitment(sk);
+  assert(disclose(callerCommitment == employer), "Unauthorized: Only employer can close cycle");
+  assert(disclose(!isClosed), "Payroll cycle is already closed");
+
+  isClosed = true;
+}

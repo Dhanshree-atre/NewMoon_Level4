@@ -1,0 +1,43 @@
+name: MidnightPay CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Midnight Compact Compiler
+        run: |
+          echo "Installing Compact toolchain..."
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
+          compact --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile Compact Smart Contract
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          compact compile contracts/midnightpay.compact managed/midnightpay
+
+      - name: Run Test Suite
+        run: npm test
+
+      - name: Build Frontend Application
+        run: npm run build
