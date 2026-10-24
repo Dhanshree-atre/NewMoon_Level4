@@ -8,7 +8,7 @@
 
 ## Live Demo
 
-- **Application URL:** [https://midnight-pay.vercel.app](https://midnight-pay.vercel.app) *(or run locally via `npm run dev`)*
+- **Application URL:** https://new-moon-level4-llni.vercel.app/
 - **Demo Walkthrough Video:** *(Record and link demo video here)*
 
 ---
