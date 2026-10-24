@@ -26,6 +26,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
+          compact update 0.34.0
           compact --version
 
       - name: Install dependencies
@@ -34,7 +35,7 @@ jobs:
       - name: Compile Compact Smart Contract
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          compact compile contracts/midnightpay.compact managed/midnightpay
+          compact compile --skip-zk contracts/midnightpay.compact managed/midnightpay
 
       - name: Run Test Suite
         run: npm test
