@@ -21,7 +21,7 @@ The MidnightPay smart contract is prepared for deployment to the **Midnight Prep
 | :--- | :--- | :--- | :--- |
 | **Midnight Preprod** | `midnightpay` | `02005f51515d51545b4c4258793a70726570726f643a636f6e74726163743a313739` | [Midnight Preprod Explorer](https://explorer.midnight.network) |
 
-*(Note: If re-deploying to a new address on Preprod, update the table above using your deployed contract address).*
+
 
 ---
 
